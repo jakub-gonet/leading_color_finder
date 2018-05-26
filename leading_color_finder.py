@@ -10,7 +10,7 @@ def get_cli_args()-> argparse.Namespace:
         description='A pixel value counter, used to get leading color of a image')
     parser.add_argument('filename',  nargs=1, type=str,  metavar='Filename',
                         help='A filepath to desired image')
-    parser.add_argument('-n', nargs=1, type=int, default=10,
+    parser.add_argument('-n', nargs=1, type=int, default=[10],
                         help='A number of outputted colors')
 
     return parser.parse_args()
@@ -22,7 +22,7 @@ def get_rgb_values_from_image(img: Image) -> List[Tuple[int, int, int, int]]:
     width, height = img.size
     for row in range(height):
         for pixel in range(width):
-            rgb_values.append(loaded_img[row, pixel])
+            rgb_values.append(loaded_img[pixel, row])
     return rgb_values
 
 
@@ -36,19 +36,19 @@ def rgba_to_hex_str(rgba: Tuple[int, int, int, int])->str:
 
 
 def print_rgba_as_hex_with_color(rgba_values: Tuple[int, int, int, int])->None:
-    print(*[sty.fg(*x[:-1]) + rgba_to_hex_str(x) +
-            sty.fg.rs for x in rgba_values], sep='\n')
+    for rgba in rgba_values:
+        print(sty.fg(*rgba[:-1]) + rgba_to_hex_str(rgba) +
+              sty.fg.rs)
 
 
 def main():
     args = get_cli_args()
     filename = args.filename[0]
-    n = args.n
+    n = args.n[0]
 
-    with Image.open(filename) as img:
+    with Image.open(filename).convert('RGBA') as img:
         values = get_rgb_values_from_image(img)
         counted = count_rgb_values(values, n)
-        print([x[0] for x in counted])
         print_rgba_as_hex_with_color([x[0] for x in counted])
 
 
